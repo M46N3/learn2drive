@@ -1,5 +1,10 @@
 import gym
 import random
+import numpy as np
+
+from keras.layers import Input, Dense, Conv2D
+from keras.models import Model
+
 env = gym.make('CarRacing-v0')
 
 # print(observation)
@@ -21,15 +26,32 @@ class Agent:
                              [0.0, 0.0, 0.8]]    # 80% brake
 
     def action(self, observation, reward):
-        action = random.randint(0, 3)
+        # action = random.randint(0, 3)
         self.sum += reward
         if (self.sum > self.high):
             self.high = self.sum
-        print(action, self.sum)
+
+        # This returns a tensor
+        inputs = Input(shape=(84,64,1))
+
+        # a layer instance is callable on a tensor, and returns a tensor
+        output_1 = Conv2D(32, 8, strides=(4), activation='relu')(inputs)
+        output_2 = Conv2D(64, 4, strides=(2), activation='relu')(output_1)
+        output_3 = Conv2D(64, 3, strides=(1), activation='relu')(output_2)
+        output_4 = Dense(512, activation='relu')(output_3)
+        predictions = Dense(4, activation='softmax')(output_4)
+
+        # This creates a model that includes
+        # the Input layer and three Dense layers
+        model = Model(inputs=inputs, outputs=predictions)
+
+        action = model(observation[0:84, 16:80, 1])
+
+        # print(action, self.sum)
         return self.action_space[action]
 
     def isLost(self):
-        if self.sum + 5 < self.high:
+        if self.sum + 10 < self.high:
             return True
         else:
             return False 
@@ -39,14 +61,14 @@ agent = Agent()
 observation = env.reset()
 reward = 0
 
-for _ in range(1000):
+while(True):
     env.render()
     observation, reward, done, _ = env.step(
         agent.action(observation, reward))  # take a random action
     
-    if agent.isLost():
+    if agent.isLost() or done:
         break
 
-# print(observation[:, :, 1])
+print(np.shape(observation[0:84, 16:80, 1]))
 print(agent.sum)
 env.close()
