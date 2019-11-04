@@ -4,6 +4,7 @@ import numpy as np
 
 from keras.layers import Input, Dense, Conv2D
 from keras.models import Model
+import keras.backend as K
 
 env = gym.make('CarRacing-v0')
 
@@ -45,9 +46,12 @@ class Agent:
         # the Input layer and three Dense layers
         model = Model(inputs=inputs, outputs=predictions)
 
-        action = model(observation[0:84, 16:80, 1])
+        print(observation[0:84, 16:80, 1])
+        print(np.shape(observation[0:84, 16:80, 1]))
+        action = model(K.variable(np.reshape(observation[0:84, 16:80, 1], (-1, 84, 64, 1))))
 
         # print(action, self.sum)
+        print(action)
         return self.action_space[action]
 
     def isLost(self):
@@ -62,7 +66,7 @@ observation = env.reset()
 reward = 0
 
 while(True):
-    env.render()
+    # env.render()
     observation, reward, done, _ = env.step(
         agent.action(observation, reward))  # take a random action
     
