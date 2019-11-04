@@ -36,11 +36,13 @@ class Agent:
         inputs = Input(shape=(84,64,1))
 
         # a layer instance is callable on a tensor, and returns a tensor
-        output_1 = Conv2D(32, 8, strides=(4), activation='relu')(inputs)
-        output_2 = Conv2D(64, 4, strides=(2), activation='relu')(output_1)
-        output_3 = Conv2D(64, 3, strides=(1), activation='relu')(output_2)
+        output_1 = Conv2D(32, 8, strides=4, activation='relu')(inputs)
+        output_2 = Conv2D(64, 4, strides=2, activation='relu')(output_1)
+        output_3 = Conv2D(64, 3, strides=1, activation='relu')(output_2)
         output_4 = Dense(512, activation='relu')(output_3)
-        predictions = Dense(4, activation='softmax')(output_4)
+        output_5 = Dense(4, activation='softmax')(output_4)
+        output_6 = Dense(100, activation='relu')(output_5)
+        predictions = Dense(1)(output_6)
 
         # This creates a model that includes
         # the Input layer and three Dense layers
@@ -52,6 +54,7 @@ class Agent:
 
         # print(action, self.sum)
         print(action)
+        print(K.eval(action))
         return self.action_space[action]
 
     def isLost(self):
