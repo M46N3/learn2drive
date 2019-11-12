@@ -1,56 +1,69 @@
 import os
-import numpy as np
 import tensorflow as tf
-import random
+import numpy as np
 
-class PolicyGradientAgent(object):
-    # lr = learning rate
-    # gamma = discount factor
-    # n_actions = number of actions
-    def __init__(self, lr, gamma, n_actions=4, l1_size=64, l2_size=64, input_dims=8, chkpt_dir='tmp'):
-        self.lr = lr
-        self.gamma = gamma
+class PolicyGradientAgent():
+    def __init__(self, ALPHA, GAMMA=0.95, n_actions=4,
+                 layer1_size=16, layer2_size=16, input_dims=128,
+                 chkpt_dir='tmp/checkpoints'):
+        self.lr = ALPHA
+        self.gamma = GAMMA
         self.n_actions = n_actions
         self.action_space = [i for i in range(n_actions)]
+        self.layer1_size = layer1_size
+        self.layer2_size = layer2_size
+        self.input_dims = input_dims
         self.state_memory = []
         self.action_memory = []
         self.reward_memory = []
-        self.input_dims = input_dims
-        self.l1_size = l1_size
-        self.l2_size = l2_size
         self.sess = tf.Session()
         self.build_net()
         self.sess.run(tf.global_variables_initializer())
         self.saver = tf.train.Saver()
-        self.chkpt_file = os.path.join(chkpt_dir, 'policy.ckpt')
+        self.checkpoint_file = os.path.join(chkpt_dir,'policy_network.ckpt')
 
     def build_net(self):
-        self.input = tf.placeholder(tf.float32, shape=[None, self.input_dims], name='input')
-        self.label = tf.placeholder(tf.int32, shape=[None,], name='actions')
-        self.G = tf.placeholder(tf.float32, shape=[None,], name='G')
+        with tf.variable_scope('parameters'):
+            self.input = tf.placeholder(tf.float32,
+                                        shape=[None, self.input_dims], name='input')
+            self.label = tf.placeholder(tf.int32,
+                                        shape=[None, ], name='label')
+            self.G = tf.placeholder(tf.float32, shape=[None,], name='G')
 
-        with tf.variable_scope('layers'):
-            l1 = tf.layers.dense(inputs=self.input, units=self.l1_size, activation=tf.nn.relu, kernel_initializer=tf.contrib.layers.xavier_initializer())
-            l2 = tf.layers.dense(inputs=l1, units=self.l2_size, activation=tf.nn.relu, kernel_initializer=tf.contrib.layers.xavier_initializer())
-            l3 = tf.layers.dense(inputs=l2, units=self.n_actions, activation=None, kernel_initializer=tf.contrib.layers.xavier_initializer())
-            self.actions = tf.nn.softmax(l3, name='probabilities')
+        with tf.variable_scope('layer1'):
+            l1 = tf.layers.dense(inputs=self.input, units=self.layer1_size,
+                                 activation=tf.nn.relu,
+                      kernel_initializer=tf.contrib.layers.xavier_initializer())
+
+        with tf.variable_scope('layer2'):
+            l2 = tf.layers.dense(inputs=l1, units=self.layer2_size,
+                                 activation=tf.nn.relu,
+                      kernel_initializer=tf.contrib.layers.xavier_initializer())
+
+        with tf.variable_scope('layer3'):
+            l3 = tf.layers.dense(inputs=l2, units=self.n_actions,
+                                 activation=None,
+                      kernel_initializer=tf.contrib.layers.xavier_initializer())
+        self.actions = tf.nn.softmax(l3, name='actions')
 
         with tf.variable_scope('loss'):
-            neg_log_prob = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=l3, labels=self.label)
-            loss = neg_log_prob * self.G
+            negative_log_probability = tf.nn.sparse_softmax_cross_entropy_with_logits(
+                                                    logits=l3, labels=self.label)
+
+            loss = negative_log_probability * self.G
 
         with tf.variable_scope('train'):
-            self.train_op = tf.train.AdadeltaOptimizer(self.lr).minimize(loss)
+            self.train_op = tf.train.AdamOptimizer(self.lr).minimize(loss)
 
-    def choose_action(self, state):
-        state = state[np.newaxis, :]
-        probabilities = self.sess.run(self.actions, feed_dict={self.input: state})[0]
-        action = np.random.choice(self.action_space, p=probabilities)
+    def choose_action(self, observation):
+        observation = observation[np.newaxis, :]
+        probabilities = self.sess.run(self.actions, feed_dict={self.input: observation})[0]
+        action = np.random.choice(self.action_space, p = probabilities )
 
         return action
 
-    def store_transitions(self, state, action, reward):
-        self.state_memory.append(state)
+    def store_transition(self, observation, action, reward):
+        self.state_memory.append(observation)
         self.action_memory.append(action)
         self.reward_memory.append(reward)
 
@@ -67,20 +80,22 @@ class PolicyGradientAgent(object):
                 G_sum += reward_memory[k] * discount
                 discount *= self.gamma
             G[t] = G_sum
-
         mean = np.mean(G)
         std = np.std(G) if np.std(G) > 0 else 1
-        G = (G-mean)/std
+        G = (G - mean) / std
 
-        _ = self.sess.run(self.train_op, feed_dict={self.input: state_memory, self.label: action_memory, self.G: G})
-
+        _ = self.sess.run(self.train_op,
+                            feed_dict={self.input: state_memory,
+                                       self.label: action_memory,
+                                       self.G: G})
         self.state_memory = []
         self.action_memory = []
         self.reward_memory = []
 
     def load_checkpoint(self):
-        print('load checkpoint')
-        self.saver.restore(self.sess, self.chkpt_file)
+        print("...Loading checkpoint...")
+        self.saver.restore(self.sess, self.checkpoint_file)
 
     def save_checkpoint(self):
-        self.saver.save(self.sess, self.chkpt_file)
+        #print("...Saving checkpoint...")
+        self.saver.save(self.sess, self.checkpoint_file)
