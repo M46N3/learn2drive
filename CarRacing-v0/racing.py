@@ -16,7 +16,7 @@ gamma = 0.99  # factor to discount reward
 batch_size = 10
 
 resume = True
-render = False
+render = True
 
 version = "v1"
 
