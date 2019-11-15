@@ -13,12 +13,12 @@ import keras.backend as K
 
 learning_rate = 1e-4
 gamma = 0.99  # factor to discount reward
-batch_size = 10
+batch_size = 64
 
 resume = True
 render = True
 
-version = "v1"
+version = "batch_size_64"
 
 if resume and not os.path.isdir('trainingData/' + version):
     os.makedirs('trainingData/' + version)
