@@ -12,6 +12,7 @@ Thanks to OpenAI and morvanzhou for their examples
 import tensorflow as tf
 import numpy as np
 import gym
+import csv
 import os
 import scipy.signal
 from gym import wrappers
@@ -311,6 +312,11 @@ if __name__ == '__main__':
             if terminal:
                 # End of episode summary
                 print('Episode: %i' % episode, "| Reward: %.2f" % ep_r, '| Steps: %i' % ep_t)
+
+                with open('results.csv', mode='a') as rewards_file:
+                    rewards_writer = csv.writer(rewards_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+                    rewards_writer.writerow([episode, ep_r])
+                env.reset()
 
                 worker_summary = tf.Summary()
                 worker_summary.value.add(tag="Reward", simple_value=ep_r)

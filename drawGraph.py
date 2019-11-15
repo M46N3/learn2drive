@@ -11,7 +11,7 @@ with open('history_racing.csv','r') as csvfile:
         y.append(float(row[1]))
 
 plt.plot(x,y)
-plt.xlabel('Episodes')
-plt.ylabel('Reward')
+plt.xlabel('Episode')
+plt.ylabel('Score')
 plt.legend()
 plt.show()
