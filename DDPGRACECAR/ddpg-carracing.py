@@ -62,7 +62,7 @@ def playGame(train_indicator=0, render=True):  # 1 means Train, 0 means simply R
     except:
         print("Cannot find the weight")
 
-    for i in range(episode_count):
+    for i in range(36, episode_count):
 
         print("Episode : " + str(i) + " Replay Buffer " + str(buff.count()))
         current_screen_state = observation.flatten()  #observation is given to us from py gym enviroment.
