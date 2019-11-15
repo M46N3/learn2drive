@@ -31,5 +31,5 @@ for i in range(5000):
     print('episode ', i, 'score %.2f' % score,
           'trailing 100 games avg %.3f' % np.mean(score_history[-100:]))
 
-filename = 'LunarLander-alpha000025-beta00025-400-300.png'
+filename = 'LunarLanderContinuous-v2_DDPG.png'
 plotLearning(score_history, filename, window=100)
