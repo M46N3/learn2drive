@@ -18,7 +18,7 @@ batch_size = 64
 resume = True
 render = True
 
-version = "batch_size_64"
+version = "batch_size_64_end_10"
 
 if resume and not os.path.isdir('trainingData/' + version):
     os.makedirs('trainingData/' + version)
@@ -119,7 +119,7 @@ while True:
     if reward_sum > maximum_reward_sum:
         maximum_reward_sum = reward_sum
 
-    if maximum_reward_sum - reward_sum > 3:
+    if maximum_reward_sum - reward_sum > 10:
         done = True
 
 
