@@ -12,8 +12,10 @@ window = int(sys.argv[5])
 
 
 def plotLearning(scores1, scores2, scores3, filename, x=None, window=5):   
-    N = len(scores)
+    N = len(scores1)
     running_avg1 = np.empty(N)
+    running_avg2 = np.empty(N)
+    running_avg3 = np.empty(N)
     for t in range(N):
 	    running_avg1[t] = np.mean(scores1[max(0, t-window):(t+1)])
 	    running_avg2[t] = np.mean(scores2[max(0, t-window):(t+1)])
@@ -22,7 +24,9 @@ def plotLearning(scores1, scores2, scores3, filename, x=None, window=5):
         x = [i for i in range(N)]
     plt.ylabel('Score')       
     plt.xlabel('Episode')                     
-    plt.plot(x, running_avg)
+    plt.plot(x, running_avg1)
+    plt.plot(x, running_avg2)
+    plt.plot(x, running_avg3)
     plt.savefig(filename)
 
 
@@ -35,6 +39,6 @@ scores1 = list(data1[:,1])
 scores2 = list(data2[:,1])
 scores3 = list(data3[:,1])
 
-plotLearning(scores, filename_output, window=window)
+plotLearning(scores1, scores2, scores3, filename_output, window=window)
 
 print("Plotting done!")
